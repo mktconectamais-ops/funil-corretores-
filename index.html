@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagnóstico Estratégico Conecta+</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0D16;
+    --panel:#12172A;
+    --panel-2:#161D33;
+    --blue:#4C7FEA;
+    --blue-dark:#3A66C9;
+    --blue-soft:rgba(76,127,234,0.16);
+    --gray:#545B66;
+    --gray-light:#9298A6;
+    --white:#FFFFFF;
+    --radius-lg:22px;
+    --radius-md:14px;
+    --radius-pill:999px;
+  }
+
+  *{ box-sizing:border-box; }
+
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--white);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .page{
+    max-width:520px;
+    margin:0 auto;
+    min-height:100vh;
+    position:relative;
+    padding:48px 24px 32px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+  }
+
+  /* ---------- LOGO ---------- */
+  .logo{
+    font-family:'Poppins', sans-serif;
+    font-weight:800;
+    font-size:28px;
+    letter-spacing:0.5px;
+    color:var(--white);
+    margin-bottom:40px;
+  }
+  .logo span{ color:var(--blue); }
+
+  /* ---------- HERO ---------- */
+  .hero-headline{
+    font-family:'Poppins', sans-serif;
+    font-weight:700;
+    font-size:26px;
+    line-height:1.35;
+    text-transform:uppercase;
+    margin:0 0 32px;
+  }
+  .hero-headline em{
+    font-style:normal;
+    color:var(--blue);
+  }
+
+  /* video placeholder - troque por <video> ou embed quando o roteiro estiver pronto com a Social Media */
+  .video-frame{
+    width:100%;
+    aspect-ratio:9/13;
+    max-height:420px;
+    border-radius:var(--radius-md);
+    background:var(--panel);
+    border:1px solid rgba(255,255,255,0.08);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    margin-bottom:32px;
+    position:relative;
+    overflow:hidden;
+  }
+  .play-btn{
+    width:56px;
+    height:56px;
+    border-radius:50%;
+    background:var(--blue);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .play-btn svg{ width:20px; height:20px; }
+  .video-frame p{
+    color:var(--gray-light);
+    font-size:13px;
+    margin:0;
+    padding:0 24px;
+  }
+
+  .cta-btn{
+    width:100%;
+    background:var(--blue);
+    color:var(--bg);
+    border:none;
+    border-radius:var(--radius-pill);
+    padding:18px 24px;
+    font-family:'Poppins', sans-serif;
+    font-weight:600;
+    font-size:16px;
+    cursor:pointer;
+    transition:background 0.15s ease, transform 0.1s ease;
+  }
+  .cta-btn:hover{ background:var(--blue-dark); }
+  .cta-btn:active{ transform:scale(0.98); }
+
+  .footer{
+    margin-top:auto;
+    padding-top:48px;
+    color:var(--gray-light);
+    font-size:11px;
+    line-height:1.7;
+  }
+
+  /* ---------- MODAL ---------- */
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(5,7,13,0.7);
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+    z-index:50;
+  }
+  .overlay.open{ display:flex; }
+
+  .modal{
+    width:100%;
+    max-width:520px;
+    background:var(--panel);
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+    padding:28px 24px 32px;
+    position:relative;
+    max-height:92vh;
+    overflow-y:auto;
+  }
+  @media (min-width:560px){
+    .overlay{ align-items:center; }
+    .modal{ border-radius:var(--radius-lg); }
+  }
+
+  .modal-close{
+    position:absolute;
+    top:20px;
+    right:20px;
+    background:none;
+    border:none;
+    color:var(--gray-light);
+    font-size:20px;
+    cursor:pointer;
+    line-height:1;
+  }
+
+  .badge{
+    display:inline-block;
+    border:1px solid var(--blue);
+    background:var(--blue-soft);
+    color:var(--blue);
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:0.6px;
+    text-transform:uppercase;
+    padding:8px 18px;
+    border-radius:var(--radius-pill);
+    margin-bottom:20px;
+  }
+
+  .modal h2{
+    font-family:'Poppins', sans-serif;
+    font-size:26px;
+    font-weight:700;
+    margin:0 0 14px;
+  }
+
+  .modal p.lead{
+    color:var(--gray-light);
+    font-size:14.5px;
+    line-height:1.6;
+    margin:0 0 28px;
+  }
+  .modal p.lead b{ color:var(--white); }
+
+  /* step indicator */
+  .stepper{
+    display:flex;
+    align-items:center;
+    margin-bottom:28px;
+  }
+  .step-dot{
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Poppins', sans-serif;
+    font-weight:700;
+    font-size:14px;
+    border:2px solid var(--white);
+    color:var(--white);
+    flex-shrink:0;
+    transition:all 0.2s ease;
+  }
+  .step-dot.active{
+    background:var(--blue);
+    border-color:var(--blue);
+    color:var(--bg);
+  }
+  .step-line{
+    flex:1;
+    height:1px;
+    background:var(--gray);
+    margin:0 10px;
+  }
+
+  /* form steps */
+  .step{ display:none; text-align:left; }
+  .step.active{ display:block; }
+
+  label{
+    display:block;
+    font-size:15px;
+    font-weight:600;
+    margin-bottom:12px;
+  }
+
+  input[type="text"], input[type="email"], input[type="tel"]{
+    width:100%;
+    background:var(--panel-2);
+    border:none;
+    border-bottom:1px solid var(--gray);
+    border-radius:8px 8px 0 0;
+    color:var(--white);
+    font-size:15px;
+    padding:16px 14px;
+    margin-bottom:22px;
+    font-family:'Inter', sans-serif;
+  }
+  input::placeholder{ color:var(--gray-light); }
+  input:focus{ outline:2px solid var(--blue); outline-offset:1px; }
+
+  .phone-row{
+    display:flex;
+    gap:10px;
+    margin-bottom:22px;
+  }
+  .phone-code{
+    background:var(--panel-2);
+    border-radius:8px 8px 0 0;
+    border-bottom:1px solid var(--gray);
+    padding:16px 12px;
+    font-size:15px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex-shrink:0;
+  }
+  .phone-row input{ margin-bottom:0; flex:1; }
+
+  .radio-option{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    background:var(--panel-2);
+    border-radius:var(--radius-md);
+    padding:16px 16px;
+    margin-bottom:12px;
+    cursor:pointer;
+    border:1px solid transparent;
+    transition:border-color 0.15s ease;
+  }
+  .radio-option:hover{ border-color:rgba(255,255,255,0.12); }
+  .radio-option input[type="radio"]{
+    width:20px;
+    height:20px;
+    accent-color:var(--blue);
+    margin:0;
+    flex-shrink:0;
+  }
+  .radio-option span{ font-size:15px; }
+  .radio-option.selected{ border-color:var(--blue); }
+
+  .btn-row{
+    display:flex;
+    gap:12px;
+    margin-top:8px;
+  }
+  .btn{
+    flex:1;
+    border:none;
+    border-radius:var(--radius-pill);
+    padding:16px 20px;
+    font-family:'Poppins', sans-serif;
+    font-weight:600;
+    font-size:15px;
+    cursor:pointer;
+    transition:background 0.15s ease, opacity 0.15s ease;
+  }
+  .btn-primary{ background:var(--blue); color:var(--bg); }
+  .btn-primary:hover{ background:var(--blue-dark); }
+  .btn-secondary{ background:transparent; border:1px solid var(--gray); color:var(--white); }
+  .btn-secondary:hover{ border-color:var(--white); }
+  .btn:disabled{ opacity:0.4; cursor:not-allowed; }
+
+  .disclaimer{
+    text-align:center;
+    color:var(--gray-light);
+    font-size:12px;
+    line-height:1.7;
+    margin-top:24px;
+  }
+
+  /* success step */
+  .success-icon{
+    width:60px;
+    height:60px;
+    border-radius:50%;
+    background:var(--blue-soft);
+    border:2px solid var(--blue);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:0 auto 20px;
+  }
+  .step.success{ text-align:center; }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="logo">CONECTA<span>+</span></div>
+
+  <h1 class="hero-headline">
+    Diagnóstico de posicionamento exclusivo para corretores que desejam se posicionar como <em>autoridade máxima</em> na sua região.
+  </h1>
+
+  <!-- VIDEO: troque este placeholder pelo vídeo/roteiro da Social Media (Layane) -->
+  <div class="video-frame">
+    <div class="play-btn">
+      <svg viewBox="0 0 24 24" fill="#0A0D16"><path d="M8 5v14l11-7z"/></svg>
+    </div>
+    <p>Vídeo em breve — produção com a Social Media</p>
+  </div>
+
+  <button class="cta-btn" onclick="openModal()">Quero aplicar para o Diagnóstico de Posicionamento</button>
+
+  <div class="footer">
+    CONECTA+ 2026 | TODOS OS DIREITOS RESERVADOS<br>
+    POLÍTICA DE PRIVACIDADE · TERMOS DE USO
+  </div>
+
+</div>
+
+<!-- ===== MODAL / FUNIL ===== -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+
+    <span class="badge">Diagnóstico Estratégico Conecta+</span>
+    <h2>Faça sua aplicação</h2>
+    <p class="lead" id="leadText">Aplique para uma vaga no <b>diagnóstico estratégico Conecta+</b> preenchendo as perguntas abaixo.</p>
+
+    <div class="stepper" id="stepper">
+      <div class="step-dot active" data-step="1">1</div>
+      <div class="step-line"></div>
+      <div class="step-dot" data-step="2">2</div>
+      <div class="step-line"></div>
+      <div class="step-dot" data-step="3">3</div>
+    </div>
+
+    <form id="funnelForm">
+      <!-- STEP 1 -->
+      <div class="step active" data-step="1">
+        <label for="ig">Qual é o seu @ no Instagram?</label>
+        <input type="text" id="ig" placeholder="@seuusuario" required>
+        <div class="btn-row">
+          <button type="button" class="btn btn-primary" onclick="goToStep(2)" style="flex:1">Próximo</button>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="step" data-step="2">
+        <label>Qual a sua média mensal de renda com o mercado imobiliário?</label>
+
+        <label class="radio-option"><input type="radio" name="renda" value="Acima de R$1M" required><span>Acima de R$1M</span></label>
+        <label class="radio-option"><input type="radio" name="renda" value="R$500k – R$1M"><span>R$500k – R$1M</span></label>
+        <label class="radio-option"><input type="radio" name="renda" value="R$100k – R$500k"><span>R$100k – R$500k</span></label>
+        <label class="radio-option"><input type="radio" name="renda" value="R$50k – R$100k"><span>R$50k – R$100k</span></label>
+        <label class="radio-option"><input type="radio" name="renda" value="R$20k – R$50k"><span>R$20k – R$50k</span></label>
+        <label class="radio-option"><input type="radio" name="renda" value="Abaixo de R$20k"><span>Abaixo de R$20k</span></label>
+
+        <div class="btn-row">
+          <button type="button" class="btn btn-secondary" onclick="goToStep(1)">Anterior</button>
+          <button type="button" class="btn btn-primary" onclick="goToStep(3)">Próximo</button>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="step" data-step="3">
+        <label for="nome">Nome Completo</label>
+        <input type="text" id="nome" placeholder="Nome Completo" required>
+
+        <label for="email">Seu melhor E-mail</label>
+        <input type="email" id="email" placeholder="Seu melhor E-mail" required>
+
+        <label for="telefone">Seu Telefone</label>
+        <div class="phone-row">
+          <div class="phone-code">🇧🇷 +55</div>
+          <input type="tel" id="telefone" placeholder="(00) 00000-0000" required>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn btn-secondary" onclick="goToStep(2)">Anterior</button>
+          <button type="submit" class="btn btn-primary">ENVIAR →</button>
+        </div>
+      </div>
+
+      <!-- SUCCESS -->
+      <div class="step success" data-step="4">
+        <div class="success-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#4C7FEA" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
+        </div>
+        <h2>Aplicação enviada!</h2>
+        <p class="lead">Vamos analisar seu perfil e entraremos em contato em breve caso aprovado.</p>
+      </div>
+    </form>
+
+    <p class="disclaimer">Seus dados estão seguros.<br>Fique tranquilo(a), após o envio desse formulário entraremos em contato caso aprovado.</p>
+  </div>
+</div>
+
+<script>
+function openModal(){
+  document.getElementById('overlay').classList.add('open');
+}
+function closeModal(){
+  document.getElementById('overlay').classList.remove('open');
+}
+
+function goToStep(n){
+  document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
+  document.querySelector('.step[data-step="'+n+'"]').classList.add('active');
+
+  document.querySelectorAll('.step-dot').forEach(dot => {
+    dot.classList.toggle('active', parseInt(dot.dataset.step) <= n);
+  });
+
+  // esconde o stepper e o texto de intro na tela de sucesso
+  const isSuccess = n === 4;
+  document.getElementById('stepper').style.display = isSuccess ? 'none' : 'flex';
+  document.getElementById('leadText').style.display = isSuccess ? 'none' : 'block';
+}
+
+document.querySelectorAll('input[type="radio"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    document.querySelectorAll('.radio-option').forEach(o => o.classList.remove('selected'));
+    radio.closest('.radio-option').classList.add('selected');
+  });
+});
+
+document.getElementById('funnelForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  const originalText = submitBtn.textContent;
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Enviando...';
+
+  const lead = {
+    instagram: document.getElementById('ig').value,
+    renda: document.querySelector('input[name="renda"]:checked')?.value || '',
+    nome: document.getElementById('nome').value,
+    email: document.getElementById('email').value,
+    telefone: '+55 ' + document.getElementById('telefone').value
+  };
+
+  try {
+    const response = await fetch('/api/lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(lead)
+    });
+
+    if (!response.ok) throw new Error('Falha ao enviar');
+
+    goToStep(4);
+  } catch (err) {
+    console.error('Erro ao enviar lead:', err);
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalText;
+    alert('Não conseguimos enviar sua aplicação agora. Tenta de novo em alguns segundos.');
+  }
+});
+</script>
+
+</body>
+</html>
