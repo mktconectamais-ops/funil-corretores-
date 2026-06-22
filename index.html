@@ -47,14 +47,11 @@
 
   /* ---------- LOGO ---------- */
   .logo{
-    font-family:'Poppins', sans-serif;
-    font-weight:800;
-    font-size:28px;
-    letter-spacing:0.5px;
-    color:var(--white);
+    height:40px;
+    width:auto;
     margin-bottom:40px;
+    display:block;
   }
-  .logo span{ color:var(--blue); }
 
   /* ---------- HERO ---------- */
   .hero-headline{
@@ -346,7 +343,7 @@
 
 <div class="page">
 
-  <div class="logo">CONECTA<span>+</span></div>
+  <img class="logo" src="/conecta-logo.png" alt="Conecta+ Marketing Imobiliário">
 
   <h1 class="hero-headline">
     Diagnóstico de posicionamento exclusivo para corretores que desejam se posicionar como <em>autoridade máxima</em> na sua região.
@@ -433,13 +430,13 @@
         </div>
       </div>
 
-      <!-- SUCCESS -->
+      <!-- SUCCESS — texto definido dinamicamente conforme classificação (ICP vs Não-ICP) -->
       <div class="step success" data-step="4">
         <div class="success-icon">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#4C7FEA" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
         </div>
-        <h2>Aplicação enviada!</h2>
-        <p class="lead">Vamos analisar seu perfil e entraremos em contato em breve caso aprovado.</p>
+        <h2 id="successTitle">Recebemos seus dados!</h2>
+        <p class="lead" id="successText">Em breve você receberá um retorno.</p>
       </div>
     </form>
 
@@ -500,6 +497,20 @@ document.getElementById('funnelForm').addEventListener('submit', async function(
     });
 
     if (!response.ok) throw new Error('Falha ao enviar');
+
+    const data = await response.json();
+
+    // Define texto da tela de sucesso com base na classificação retornada pela API
+    const titleEl = document.getElementById('successTitle');
+    const textEl  = document.getElementById('successText');
+
+    if (data.type === 'icp') {
+      titleEl.textContent = 'Recebemos seus dados!';
+      textEl.textContent  = 'Em até 24h você receberá no seu WhatsApp um diagnóstico personalizado, feito sob medida pro seu perfil.';
+    } else {
+      titleEl.textContent = 'Recebemos seu interesse.';
+      textEl.textContent  = 'Vamos avaliar e, se identificarmos um fit com algum dos nossos produtos, entramos em contato.';
+    }
 
     goToStep(4);
   } catch (err) {
