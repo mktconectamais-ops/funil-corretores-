@@ -1,18 +1,25 @@
 // api/lead.js
-// Conecta+ — Funil Diagnóstico (versão simplificada)
+// Conecta+ — Funil Diagnóstico (versão com roteamento automático de pipeline)
 // ─────────────────────────────────────────────────────────────
 // Fluxo:
 // 1. Recebe submissão do formulário.
 // 2. Classifica por faixa de renda:
-//    - >= R$20k/mês  → ICP   (tag "Funil Diagnóstico — ICP", tela "diagnóstico em 24h")
-//    - <  R$20k/mês  → Não-ICP (tag diferente, tela "vamos avaliar")
-// 3. Cria lead no Kommo com tag e nota simples. Diagnóstico será feito manualmente.
+//    - >= R$20k/mês → ICP   → Pipeline "Funil Diagnóstico — ICP", estágio "Base"
+//    - <  R$20k/mês → Não-ICP → Pipeline "Não - ICP", estágio "Novo"
+// 3. Cria lead no Kommo já no pipeline e estágio corretos.
 // 4. Devolve ao frontend o tipo do lead pra mostrar a tela certa.
 
 const KOMMO_SUBDOMAIN = process.env.KOMMO_SUBDOMAIN;
 const KOMMO_TOKEN     = process.env.KOMMO_TOKEN;
 
-// A única faixa que NÃO é ICP. Tudo o mais é tratado como ICP.
+// IDs extraídos da API do Kommo
+const PIPELINE_ICP        = 13964159;
+const STATUS_ICP_BASE     = 107767847;  // estágio "Base"
+
+const PIPELINE_NAO_ICP    = 14005591;
+const STATUS_NAO_ICP_NOVO = 108097647;  // estágio "Novo"
+
+// A única faixa que NÃO é ICP
 const STR_NAO_ICP = 'abaixo de r$20k';
 
 export default async function handler(req, res) {
@@ -21,7 +28,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Vercel normalmente já parseia JSON, mas vamos ser defensivos
     let body = req.body;
     if (typeof body === 'string') {
       try { body = JSON.parse(body); } catch { body = {}; }
@@ -35,13 +41,15 @@ export default async function handler(req, res) {
 
     const isICP    = !ehNaoICP(renda);
     const username = limparUsername(instagram);
-    const tag      = isICP ? 'Funil Diagnóstico — ICP' : 'Funil Diagnóstico — Não-ICP';
-    const nota     = montarNota({ isICP, instagram, username, renda });
 
-    const ok = await criarLeadNoKommo({ nome, telefone, email, tag, nota });
+    const pipelineId = isICP ? PIPELINE_ICP     : PIPELINE_NAO_ICP;
+    const statusId   = isICP ? STATUS_ICP_BASE  : STATUS_NAO_ICP_NOVO;
+    const tag        = isICP ? 'Funil Diagnóstico — ICP' : 'Funil Diagnóstico — Não-ICP';
+    const nota       = montarNota({ isICP, instagram, username, renda });
+
+    const ok = await criarLeadNoKommo({ nome, telefone, email, tag, nota, pipelineId, statusId });
 
     if (!ok) {
-      // Falha silenciosa é o pior cenário — devolvemos erro ao frontend
       return res.status(500).json({ error: 'Não foi possível registrar. Tente novamente.' });
     }
 
@@ -85,18 +93,19 @@ function montarNota({ isICP, instagram, username, renda }) {
 
   if (isICP) {
     L.push('▶ PRÓXIMO PASSO');
-    L.push('Analisar perfil @' + username + ' no Instagram,');
-    L.push('preparar diagnóstico (manual / agente IA) e enviar via WhatsApp em até 24h.');
+    L.push(`1. Abrir Instagram @${username} e anotar 1-2 observações reais.`);
+    L.push('2. Preparar diagnóstico (agente IA no Claude).');
+    L.push('3. Enviar via WhatsApp em até 24h.');
   } else {
     L.push('▶ PRÓXIMO PASSO');
     L.push('Lead fora do perfil de diagnóstico (renda < R$20k/mês).');
-    L.push('Possível audiência para: mentoria, assessoria, captação e edição de conteúdo.');
+    L.push('Avaliar fit com: mentoria, assessoria, criativos, tráfego pago isolado.');
   }
 
   return L.join('\n');
 }
 
-async function criarLeadNoKommo({ nome, telefone, email, tag, nota }) {
+async function criarLeadNoKommo({ nome, telefone, email, tag, nota, pipelineId, statusId }) {
   const contatoFields = [{
     field_code: 'PHONE',
     values: [{ value: telefone, enum_code: 'WORK' }]
@@ -110,7 +119,9 @@ async function criarLeadNoKommo({ nome, telefone, email, tag, nota }) {
   }
 
   const payload = [{
-    name: `[Diagnóstico] ${nome}`,
+    name:        `[Diagnóstico] ${nome}`,
+    pipeline_id: pipelineId,
+    status_id:   statusId,
     _embedded: {
       tags:     [{ name: tag }],
       contacts: [{
